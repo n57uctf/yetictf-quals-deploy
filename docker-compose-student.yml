@@ -1,0 +1,58 @@
+services:
+  student_ctfd:
+    image: ctfd/ctfd:3.5.0
+    user: root
+    restart: always
+    expose:
+      - "8000"
+    env_file:
+      - .student.env
+    volumes:
+      - student_ctfd_logs:/var/log/CTFd
+      - student_ctfd_uploads:/var/uploads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.student.rule=Host(`yetictf.nstu.ru`) && PathPrefix(`/student`)"
+      - "traefik.http.routers.student.entrypoints=websecure"
+      - "traefik.http.routers.student.tls.certresolver=lets-encr"
+    depends_on:
+      - student_db
+    networks:
+      default:
+      web:
+
+  student_db:
+    image: mariadb:10.4.12
+    restart: always
+    env_file:
+      - .student.env
+    volumes:
+      - student_mysql_data:/var/lib/mysql
+    # This command is required to set important mariadb defaults
+    command: [mysqld, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --wait_timeout=28800, --log-warnings=0]
+
+  student_db_backup:
+    image: tiredofit/db-backup
+    restart: always
+    depends_on:
+      - student_db
+      - student_ctfd
+    env_file:
+      - .student.env
+
+  student_cache:
+    image: redis:4
+    restart: always
+    volumes:
+      - student_redis_data:/data
+
+volumes:
+  student_mysql_data:
+  student_redis_data:
+  student_ctfd_logs:
+  student_ctfd_uploads:
+  
+
+networks:
+  web:
+  default:

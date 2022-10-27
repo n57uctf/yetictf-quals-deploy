@@ -1,0 +1,33 @@
+networks:
+  default:
+  web:
+    internal: false
+
+services:
+  traefik:
+    image: "traefik:v2.9"
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - $PWD/traefik/traefik.yml:/traefik.yml:ro
+      - $PWD/traefik/acme.json:/acme.json
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`yetictf.nstu.ru`)  && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=lets-encr"
+      - "traefik.http.routers.traefik.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_BASICAUTH}"
+    networks: [web,default]
+  frontpage:
+    build: ./frontpage
+    expose:
+      - 80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontpage.rule=Host(`yetictf.nstu.ru`)"
+      - "traefik.http.routers.frontpage.entrypoints=websecure"
+      - "traefik.http.routers.frontpage.tls.certresolver=lets-encr"

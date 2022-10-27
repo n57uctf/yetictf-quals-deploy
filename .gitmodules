@@ -1,0 +1,3 @@
+[submodule "frontpage"]
+	path = frontpage
+	url = https://github.com/n57uctf/yetictf-frontpage
