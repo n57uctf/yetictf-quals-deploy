@@ -37,3 +37,7 @@ quals_school_ctfd_1
 quals_student_db_backup_1
 quals_traefik_1
 ```
+
+## Dev Environment
+For Developer purpose you can use special Dev-environment located in `/dev` URL-path.
+To enable Dev Environment you must add `docker-comose-dev.yml` to `.env` file and configure `.dev.env` by analogy with `.school.env`/`.student.env` 

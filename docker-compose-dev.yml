@@ -1,0 +1,58 @@
+services:
+    dev_ctfd:
+      image: ctfd/ctfd:3.5.0
+      user: root
+      restart: always
+      expose:
+        - "8000"
+      env_file:
+        - .dev.env
+      volumes:
+        - dev_ctfd_logs:/var/log/CTFd
+        - dev_ctfd_uploads:/var/uploads
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.dev.rule=Host(`yetictf.nstu.ru`) && PathPrefix(`/dev`)"
+        - "traefik.http.routers.dev.entrypoints=websecure"
+        - "traefik.http.routers.dev.tls.certresolver=lets-encr"
+      depends_on:
+        - dev_db
+      networks:
+        default:
+        web:
+  
+    dev_db:
+      image: mariadb:10.4.12
+      restart: always
+      env_file:
+        - .dev.env
+      volumes:
+        - dev_mysql_data:/var/lib/mysql
+      # This command is required to set important mariadb defaults
+      command: [mysqld, --character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --wait_timeout=28800, --log-warnings=0]
+  
+    dev_db_backup:
+      image: tiredofit/db-backup
+      restart: always
+      depends_on:
+        - dev_db
+        - dev_ctfd
+      env_file:
+        - .dev.env
+  
+    dev_cache:
+      image: redis:4
+      restart: always
+      volumes:
+        - dev_redis_data:/data
+  
+  volumes:
+    dev_mysql_data:
+    dev_redis_data:
+    dev_ctfd_logs:
+    dev_ctfd_uploads:
+  
+  networks:
+    web:
+    default:
+  
